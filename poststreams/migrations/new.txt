@@ -1,0 +1,236 @@
+from django.shortcuts import render
+
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from rest_framework import status
+from django.views.decorators.csrf import csrf_exempt
+import json
+import os
+from .models import *
+from .serializers import *
+from django.shortcuts import get_object_or_404
+
+
+
+
+# Create your views here.
+@api_view(['GET','POST'])
+@csrf_exempt
+def getStreams(request):
+    if request.method == 'GET':
+        poststream = Poststreams.objects.prefetch_related('stream','streamlike').all()
+        # for post in poststream:
+        #     stream_likes = post.streamlike.all()
+        #     for stream_like in stream_likes:
+        #         liked_status = stream_like.liked_status
+        #         print(liked_status)
+        serializer = PostStreamsSerializer(poststream, many=True)
+        return Response({"data":serializer.data ,"status":status.HTTP_200_OK})
+
+    if request.method == 'POST':
+        serializer = PostStreamsCreateSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            print(serializer)
+        return Response({"data":serializer.data ,"status":status.HTTP_200_OK})
+    
+
+@api_view(['GET', 'PUT','DELETE'])
+@csrf_exempt
+def getStreamsModify(request,id):
+        
+        if request.method == 'GET':
+            poststream  = Poststreams.objects.get(id=id)
+            serializer = PostStreamsCreateSerializer(poststream)
+            return Response(serializer.data)
+        
+        if request.method == 'PUT':
+            poststream  = Poststreams.objects.get(id=id)
+            serializer = PostStreamsCreateSerializer(poststream, data=request.data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+            return Response(serializer.data)
+        
+        if request.method == 'DELETE':
+            poststream = get_object_or_404(Poststreams, id=id)
+            poststream.delete()
+            return Response({"data":serializer.data ,"status":status.HTTP_200_OK})
+
+
+
+# Get Poststream Image .
+@api_view(['GET','POST'])
+def getStreamsImage(request):
+    if request.method == 'GET':
+        poststreamimg  = Poststreamimage.objects.all()
+        serializer = PoststreamimageSerializer(poststreamimg, many=True)
+        return Response({"data":serializer.data ,"status":status.HTTP_200_OK})
+    
+    if request.method == 'POST':
+        images = request.FILES.getlist('image')
+        poststream_id = request.data['poststream']
+        # poststream = get_object_or_404(Poststreams, id=poststream_id)
+        poststream = Poststreams.objects.get(id=poststream_id)
+        emoji = request.data.get('emoji')
+        for image in images:
+            post = Poststreamimage.objects.create(image=image, poststream = poststream, emoji=emoji)
+            post.save()
+        return Response({"status":status.HTTP_200_OK})
+
+
+
+@api_view([ 'GET', 'PUT','DELETE'])
+@csrf_exempt
+def getStreamsImageModify(request,id):
+        # if request.method == 'GET':
+        #     poststreamimg  = Poststreamimage.objects.get(id=id)
+        #     serializer = PoststreamimageSerializer(poststreamimg)
+        #     return Response(serializer.data)
+        
+        # if request.method == 'PUT':
+        #     poststreamimg  = Poststreamimage.objects.get(id=id)
+        #     if request.data.get('background_image'):
+        #         os.remove(poststreamimg.background_image.path)
+        #         serializer = PoststreamimageSerializer(poststreamimg, data=request.data, partial=True)
+        #     if serializer.is_valid():
+        #         serializer.save()
+        #     return Response(serializer.data)
+        
+        if request.method == 'DELETE':
+            poststreamimg =Poststreamimage.objects.get(id=id)
+            if len(poststreamimg.background_image) > 0:
+                os.remove(poststreamimg.background_image.path)
+            poststreamimg.delete()
+            return Response({"status":status.HTTP_200_OK})
+
+# Streamslikes .
+@api_view(['GET', 'POST'])
+def getStreamsLike(request , post_id):
+
+    if request.method == 'GET':
+        streamlike = Streamslikes.objects.all()
+        serializer = StreamslikesSerializer(streamlike, many=True)
+        return Response({"data":serializer.data ,"status":status.HTTP_200_OK})
+
+    if request.method == 'POST':
+        serializer = StreamslikesSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+        return Response({"data":serializer.data ,"status":status.HTTP_200_OK})
+
+@api_view([ 'GET', 'PUT','DELETE'])
+@csrf_exempt
+def getStreamsLikeModify(request,id):
+    if request.method == 'GET':
+        streamlike  = Streamslikes.objects.get(id=id)
+        serializer = StreamslikesSerializer(streamlike)
+        return Response(serializer.data)
+
+    if request.method == 'PUT':
+        streamlike  = Streamslikes.objects.get(id=id)
+        serializer = StreamslikesSerializer(streamlike, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+        return Response(serializer.data)
+    
+    if request.method == 'DELETE':
+        streamlike = get_object_or_404(Streamslikes, id=id)
+        streamlike.delete()
+        return Response({"status":status.HTTP_200_OK})
+
+
+# Streams Comment .
+@api_view(['GET','POST'])
+def getStreamsComment(request):
+       
+    if request.method == 'GET':
+        streamcomment = Streamscomments.objects.all()
+        serializer = StreamsCommentsSerializer(streamcomment, many=True)
+        return Response({"data":serializer.data ,"status":status.HTTP_200_OK})
+
+    if request.method == 'POST':
+        serializer = StreamsCommentsSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+        return Response({"data":serializer.data ,"status":status.HTTP_200_OK})
+
+
+@api_view([ 'GET', 'PUT','DELETE'])
+@csrf_exempt
+def getStreamsCommentModify(request,id):
+    if request.method == 'GET':
+        streamcomment  = StreamsComments.objects.get(id=id)
+        serializer = StreamsCommentsSerializer(streamcomment)
+        return Response(serializer.data)
+    
+    if request.method == 'PUT':
+        streamcomment  = StreamsComments.objects.get(id=id)
+        serializer = StreamsCommentsSerializer(streamcomment, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+        return Response(serializer.data)
+    
+    if request.method == 'DELETE':
+        streamlike = get_object_or_404(StreamsComments, id=id)
+        streamlike.delete()
+        return Response({"status":status.HTTP_200_OK})
+
+
+# Streams Replied Comment .
+@api_view(['GET','POST'])
+@csrf_exempt
+def getStreamsRepliedComment(request):
+    if request.method == 'GET':
+        streamreplied = Repliedcomment.objects.all()
+        serializer = RepliedcommentSerializer(streamreplied, many=True)
+        return Response({"data":serializer.data ,"status":status.HTTP_200_OK})
+
+    if request.method == 'POST':
+        serializer = RepliedcommentSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+        return Response({"data":serializer.data ,"status":status.HTTP_200_OK})
+
+@api_view([ 'GET', 'PUT','DELETE'])
+@csrf_exempt
+def getStreamsRepliedCommentModify(request,id):
+    if request.method == 'GET':
+        streamreplied  = Repliedcomment.objects.get(id=id)
+        serializer = RepliedcommentSerializer(streamreplied)
+        return Response(serializer.data)
+    
+    if request.method == 'PUT':
+        streamreplied  = Repliedcomment.objects.get(id=id)
+        serializer = RepliedcommentSerializer(streamreplied, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+        return Response(serializer.data)
+    
+    if request.method == 'DELETE':
+        streamreplied = get_object_or_404(Repliedcomment, id=id)
+        streamreplied.delete()
+        return Response({"status":status.HTTP_200_OK})
+
+
+
+     
+     # Streams Replied Comment .
+@api_view(['GET','POST'])
+@csrf_exempt
+def getRepliedcommentlikes(request):
+    if request.method == 'GET':
+        streamrepliedlikes = Repliedcommentlikes.objects.all()
+        serializer = RepliedcommentlikesSerializer(streamrepliedlikes, many=True)
+        return Response({"data":serializer.data ,"status":status.HTTP_200_OK})
+
+    if request.method == 'POST':
+        serializer = RepliedcommentlikesSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+        return Response({"data":serializer.data ,"status":status.HTTP_200_OK})
+
+
+
+
+
+     

@@ -1,0 +1,27 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+django = "==4.1.2"
+djangorestframework = "*"
+mysqlclient = "==2.0.1"
+django-mysql = "==2.2.0"
+channels = "*"
+tagalog = "*"
+django-admin-volt = "*"
+crispy-bootstrap5 = "*"
+pandas = "*"
+django-filter = "*"
+drf-nested-routers = "*"
+django-debug-toolbar = "*"
+djoser = "*"
+pillow = "*"
+django-import-export = "*"
+django-cors-headers = "*"
+
+[dev-packages]
+
+[requires]
+python_version = "3.11"
